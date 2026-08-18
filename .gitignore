@@ -80,6 +80,9 @@ create_phase_3_notebook.py
 prepare_data.py
 app.py
 
+# But allow predict_api/app.py (ML API entry point)
+!predict_api/app.py
+
 # Keep only these:
 # - frontend/ (Next.js app)
 # - server/ (Node.js API)
