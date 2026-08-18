@@ -21,9 +21,15 @@ const PYTHON_API_URL = process.env.PYTHON_API_URL || "http://localhost:8000"
 const app = express()
 const port = Number(process.env.PORT || 4000)
 
+// CORS configuration - supports both local development and production
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(",")
+  : ["http://localhost:3000", "http://127.0.0.1:3000"]
+
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+    origin: allowedOrigins,
+    credentials: true,
   })
 )
 app.use(express.json())
