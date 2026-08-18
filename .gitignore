@@ -1,0 +1,91 @@
+# Node
+node_modules/
+.next/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# But keep frontend/lib (TypeScript code)
+!frontend/lib/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Streamlit
+.streamlit/
+
+# Environment
+.env
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Datasets - too large for git
+datasets/
+
+# Output files - generated data
+outputs/
+*.csv
+
+# Documentation - not needed in production
+*.md
+!README.md
+
+# Jupyter notebooks - development only
+*.ipynb
+
+# Scripts - development only
+scripts/
+*.ps1
+*.sh
+
+# Test files
+test-*.js
+check-*.ps1
+
+# Training/preparation scripts - not needed for production
+phase_3_risk_model.py
+create_phase_3_notebook.py
+prepare_data.py
+app.py
+
+# Keep only these:
+# - frontend/ (Next.js app)
+# - server/ (Node.js API)
+# - predict_api/ (Python ML API)
+# - outputs/model/ (ML model files only)
+# - requirements.txt
+# - package.json
+# - risk_scoring.py (needed by predict_api)
+# - README.md

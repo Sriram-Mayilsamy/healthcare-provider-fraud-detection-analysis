@@ -1,0 +1,11 @@
+{
+  "name": "provider-risk-intelligence",
+  "private": true,
+  "scripts": {
+    "seed": "npm --prefix server run seed",
+    "dev:server": "npm --prefix server run dev",
+    "dev:web": "npm --prefix frontend run dev",
+    "dev:predict": "python -m uvicorn predict_api.app:app --reload --port 8000",
+    "install:all": "npm --prefix server install && npm --prefix frontend install"
+  }
+}
