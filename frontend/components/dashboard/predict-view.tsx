@@ -208,6 +208,21 @@ export function PredictView() {
                 <dt className="text-muted-foreground">Median-imputed</dt>
                 <dd className="tabular-nums">{result.featuresImputed}</dd>
               </dl>
+              {result.reasons && result.reasons.length > 0 && (
+                <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Top risk factors</p>
+                    <ul className="space-y-1 text-xs">
+                      {result.reasons.map((reason, index) => (
+                        <li key={index} className="text-foreground">
+                          {reason}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">

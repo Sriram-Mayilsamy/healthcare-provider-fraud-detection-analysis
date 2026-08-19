@@ -15,6 +15,7 @@ if str(ROOT) not in sys.path:
 import joblib
 import numpy as np
 import pandas as pd
+import shap
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -91,6 +92,9 @@ MEDIANS = {
     if pd.notna(value)
 }
 
+# Initialize SHAP explainer for generating explanations
+EXPLAINER = shap.TreeExplainer(MODEL)
+
 app = FastAPI(title="Provider Risk Predict", version="1.0.0")
 
 # CORS configuration - supports both local development and production
@@ -112,6 +116,53 @@ def _label(feature: str) -> str:
         .replace("Mean", "Mean ")
         .strip()
     )
+
+
+def _generate_reasons(shap_values: np.ndarray, feature_values: np.ndarray, top_n: int = 3) -> tuple[list[str], list[dict[str, Any]]]:
+    """Generate human-readable explanations from SHAP values.
+    
+    Args:
+        shap_values: SHAP values for the prediction (1D array)
+        feature_values: Feature values after imputation (1D array)
+        top_n: Number of top features to include in explanations
+        
+    Returns:
+        Tuple of (reasons, topShapFeatures) where:
+        - reasons is a list of human-readable strings
+        - topShapFeatures is a list of dicts with feature, shapValue, and value
+    """
+    # Get indices of features sorted by absolute SHAP value (descending)
+    shap_abs_indices = np.argsort(np.abs(shap_values))[::-1]
+    
+    reasons: list[str] = []
+    top_shap_features: list[dict[str, Any]] = []
+    
+    # Generate explanations for top features with positive contributions
+    for idx in shap_abs_indices:
+        if len(reasons) >= top_n:
+            break
+            
+        shap_val = float(shap_values[idx])
+        
+        # Only include features that increase risk (positive SHAP values)
+        if shap_val <= 0:
+            continue
+            
+        feature_name = FEATURE_COLUMNS[idx]
+        feature_val = float(feature_values[idx])
+        feature_label = _label(feature_name)
+        
+        # Format the reason string
+        reason = f"{feature_label} increased model risk (SHAP +{shap_val:.3f}; value {feature_val:.2f})"
+        reasons.append(reason)
+        
+        top_shap_features.append({
+            "feature": feature_name,
+            "shapValue": shap_val,
+            "value": feature_val,
+        })
+    
+    return reasons, top_shap_features
 
 
 @app.get("/health")
@@ -173,10 +224,26 @@ def predict(payload: dict[str, Any]) -> dict[str, Any]:
     probability = float(MODEL.predict_proba(imputed)[0, 1])
     score = risk_score_from_probability(probability)
     supplied = [column for column in FEATURE_COLUMNS if row[column] is not None]
+    
+    # Calculate SHAP values for this prediction
+    shap_values = EXPLAINER.shap_values(imputed)
+    
+    # shap_values may be a list (one array per class) for binary classification
+    # We want the SHAP values for the positive class (fraud = 1)
+    if isinstance(shap_values, list):
+        shap_values_fraud = shap_values[1][0]  # Class 1, first sample
+    else:
+        shap_values_fraud = shap_values[0]  # First sample
+    
+    # Generate human-readable reasons and top SHAP features
+    reasons, top_shap_features = _generate_reasons(shap_values_fraud, imputed[0])
+    
     return {
         "fraudProbability": probability,
         "providerRiskScore": score,
         "riskTier": risk_tier(score),
         "featuresUsed": len(supplied),
         "featuresImputed": len(FEATURE_COLUMNS) - len(supplied),
+        "reasons": reasons,
+        "topShapFeatures": top_shap_features,
     }

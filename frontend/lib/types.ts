@@ -90,6 +90,12 @@ export type PredictResult = {
   riskTier: RiskTier
   featuresUsed: number
   featuresImputed: number
+  reasons: string[]
+  topShapFeatures: {
+    feature: string
+    shapValue: number
+    value: number
+  }[]
 }
 
 export type ProvidersPage = {
